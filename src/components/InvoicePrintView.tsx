@@ -6,11 +6,29 @@ import { useRouter } from "next/navigation";
 
 interface InvoiceItem { description: string; unit: string; quantity: number; unit_price: number; total: number }
 interface Invoice {
-  id: number; invoice_number: string; issue_date: string; due_date: string; currency: string;
-  exchange_rate?: number; notes?: string; client_id: number; client_name: string;
-  client_cui?: string; client_reg_com?: string; client_address?: string; client_city?: string; client_country?: string;
-  user_name: string; user_cui?: string; user_reg_com?: string; user_address?: string;
-  user_city?: string; user_county?: string; bank_name?: string; iban?: string; email_contact?: string;
+  id: number;
+  invoice_number: string;
+  issue_date: string;
+  due_date: string;
+  currency: string;
+  exchange_rate?: number;
+  notes?: string;
+  client_id: number;
+  client_name: string;
+  client_cui?: string;
+  client_reg_com?: string;
+  client_address?: string;
+  client_city?: string;
+  client_country?: string;
+  user_name: string;
+  user_cui?: string;
+  user_reg_com?: string;
+  user_address?: string;
+  user_city?: string;
+  user_county?: string;
+  bank_name?: string;
+  iban?: string;
+  email_contact?: string;
   items: InvoiceItem[];
 }
 
@@ -26,7 +44,20 @@ export default function InvoicePrintView({ invoice }: { invoice: Invoice }) {
     const { number } = await nextRes.json();
     const today = new Date().toISOString().split("T")[0];
     const due = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
-    const res = await fetch("/api/invoices", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ client_id: invoice.client_id, invoice_number: number, issue_date: today, due_date: due, currency: invoice.currency, exchange_rate: invoice.exchange_rate, notes: invoice.notes, items: invoice.items }) });
+    const res = await fetch("/api/invoices", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        client_id: invoice.client_id,
+        invoice_number: number,
+        issue_date: today,
+        due_date: due,
+        currency: invoice.currency,
+        exchange_rate: invoice.exchange_rate,
+        notes: invoice.notes,
+        items: invoice.items,
+      }),
+    });
     const data = await res.json();
     if (res.ok) router.push(`/dashboard/invoices/${data.id}`);
   }
@@ -34,15 +65,32 @@ export default function InvoicePrintView({ invoice }: { invoice: Invoice }) {
   return (
     <div>
       <div className="flex items-center gap-4 mb-6 no-print">
-        <Link href="/dashboard" className="text-gray-400 hover:text-gray-900"><ArrowLeft size={20} /></Link>
+        <Link href="/dashboard" className="text-gray-400 hover:text-gray-900">
+          <ArrowLeft size={20} />
+        </Link>
         <h1 className="text-xl font-bold">{invoice.invoice_number}</h1>
         <div className="ml-auto flex gap-2">
-          <button onClick={handleDuplicate} className="flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2 text-sm hover:bg-gray-50 transition-colors"><Copy size={15} />Duplică</button>
-          <button onClick={() => window.print()} className="flex items-center gap-2 bg-gray-900 text-white rounded-lg px-4 py-2 text-sm hover:bg-gray-800 transition-colors"><Printer size={15} />Printează / PDF</button>
+          <button
+            onClick={handleDuplicate}
+            className="flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2 text-sm hover:bg-gray-50 transition-colors"
+          >
+            <Copy size={15} />
+            Duplică
+          </button>
+          <button
+            onClick={() => window.open(`/print/${invoice.id}`, '_blank')}
+            className="flex items-center gap-2 bg-gray-900 text-white rounded-lg px-4 py-2 text-sm hover:bg-gray-800 transition-colors"
+          >
+            <Printer size={15} />
+            Printează / PDF
+          </button>
         </div>
       </div>
-      <div className="bg-white shadow-sm rounded-xl border border-gray-200 max-w-3xl mx-auto p-10 print:shadow-none print:border-none print:p-8 print:max-w-none print:mx-0">
-        <p className="text-[9px] text-gray-400 mb-6 leading-relaxed">Factura circula fara semnatura si stampila cf. art.V, alin (2) din Ordonanta nr.17/2015 si art. 319 alin (29) din Legea nr. 227/2015 privind Codul fiscal.</p>
+
+      <div className="bg-white shadow-sm rounded-xl border border-gray-200 max-w-3xl mx-auto p-10">
+        <p className="text-[9px] text-gray-400 mb-6 leading-relaxed">
+          Factura circula fara semnatura si stampila cf. art.V, alin (2) din Ordonanta nr.17/2015 si art. 319 alin (29) din Legea nr. 227/2015 privind Codul fiscal.
+        </p>
         <div className="flex justify-between items-start mb-8">
           <div>
             <h1 className="text-3xl font-bold text-gray-900 tracking-tight">FACTURA</h1>
@@ -50,8 +98,10 @@ export default function InvoicePrintView({ invoice }: { invoice: Invoice }) {
           </div>
           <div className="text-right text-sm">
             <div className="grid grid-cols-2 gap-x-4 gap-y-1">
-              <span className="text-gray-500">Data emitere:</span><span className="font-semibold">{format(new Date(invoice.issue_date), "dd.MM.yyyy")}</span>
-              <span className="text-gray-500">Data scadenta</span><span className="font-semibold">{format(new Date(invoice.due_date), "dd.MM.yyyy")}</span>
+              <span className="text-gray-500">Data emitere:</span>
+              <span className="font-semibold">{format(new Date(invoice.issue_date), "dd.MM.yyyy")}</span>
+              <span className="text-gray-500">Data scadenta</span>
+              <span className="font-semibold">{format(new Date(invoice.due_date), "dd.MM.yyyy")}</span>
             </div>
           </div>
         </div>
@@ -110,12 +160,20 @@ export default function InvoicePrintView({ invoice }: { invoice: Invoice }) {
         </table>
         <div className="flex justify-end mb-6">
           <div className="w-64">
-            <div className="flex justify-between py-1.5 text-sm text-gray-600"><span>Total fara TVA:</span><span className="font-medium">{fmt(total)} {invoice.currency}</span></div>
-            <div className="flex justify-between py-2 bg-blue-600 text-white px-3 rounded-sm mt-1"><span className="font-semibold">Total</span><span className="font-bold">{fmt(total)} {invoice.currency}</span></div>
+            <div className="flex justify-between py-1.5 text-sm text-gray-600">
+              <span>Total fara TVA:</span>
+              <span className="font-medium">{fmt(total)} {invoice.currency}</span>
+            </div>
+            <div className="flex justify-between py-2 bg-blue-600 text-white px-3 rounded-sm mt-1">
+              <span className="font-semibold">Total</span>
+              <span className="font-bold">{fmt(total)} {invoice.currency}</span>
+            </div>
           </div>
         </div>
         {totalRON && invoice.exchange_rate && (
-          <p className="text-xs text-gray-500 mb-6">Valori in LEI (curs: {invoice.exchange_rate}): VALOARE {fmt(totalRON)} RON, TVA 0 RON, TOTAL {fmt(totalRON)} RON</p>
+          <p className="text-xs text-gray-500 mb-6">
+            Valori in LEI (curs: {invoice.exchange_rate}): VALOARE {fmt(totalRON)} RON, TVA 0 RON, TOTAL {fmt(totalRON)} RON
+          </p>
         )}
         {(invoice.bank_name || invoice.iban) && (
           <div className="border-t border-gray-200 pt-4">
