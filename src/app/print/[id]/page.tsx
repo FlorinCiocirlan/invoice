@@ -27,6 +27,8 @@ export default async function PrintPage({ params }: { params: Promise<{ id: stri
   const totalRON = inv.exchange_rate ? total * inv.exchange_rate : null;
   function fmt(n: number) { return n.toLocaleString("ro-RO", { minimumFractionDigits: 0, maximumFractionDigits: 2 }); }
 
+  const printScript = `<script>window.onload = function() {}</scr` + `ipt>`;
+
   return (
     <html lang="ro">
       <head>
@@ -71,10 +73,11 @@ export default async function PrintPage({ params }: { params: Promise<{ id: stri
           .print-btn { background: #111; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; }
           @media print { .print-bar { display: none; } }
         `}</style>
+        <script dangerouslySetInnerHTML={{ __html: 'function doPrint() { window.print(); }' }} />
       </head>
       <body>
         <div className="print-bar">
-          <button className="print-btn" onClick="window.print()">&#128438; Printează / Salvează PDF</button>
+          <button className="print-btn" onClick={() => window.print()}>&#128438; Printează / Salvează PDF</button>
         </div>
         <p className="legal">Factura circula fara semnatura si stampila cf. art.V, alin (2) din Ordonanta nr.17/2015 si art. 319 alin (29) din Legea nr. 227/2015 privind Codul fiscal.</p>
         <div className="header">
