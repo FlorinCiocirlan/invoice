@@ -14,13 +14,14 @@ export default async function InvoiceViewPage({ params }: { params: Promise<{ id
            u.address as user_address, u.city as user_city, u.county as user_county,
            COALESCE(ba.bank_name, default_ba.bank_name, u.bank_name) as bank_name,
            COALESCE(ba.iban, default_ba.iban, u.iban) as iban,
+           COALESCE(ba.swift, default_ba.swift) as swift,
            u.email_contact
     FROM invoices i
     LEFT JOIN clients c ON c.id = i.client_id
     LEFT JOIN users u ON u.id = i.user_id
     LEFT JOIN bank_accounts ba ON ba.id = i.bank_account_id AND ba.user_id = i.user_id
     LEFT JOIN LATERAL (
-      SELECT bank_name, iban
+      SELECT bank_name, iban, swift
       FROM bank_accounts
       WHERE user_id = i.user_id
       ORDER BY is_default DESC, created_at ASC
