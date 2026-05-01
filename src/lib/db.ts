@@ -16,8 +16,6 @@ export async function initDB() {
       address TEXT,
       city TEXT,
       county TEXT,
-      bank_name TEXT,
-      iban TEXT,
       email_contact TEXT,
       invoice_series TEXT DEFAULT 'F',
       invoice_start_number INTEGER DEFAULT 1,
@@ -25,9 +23,22 @@ export async function initDB() {
     )
   `;
 
-  // Add columns if they don't exist (for existing DBs)
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS invoice_series TEXT DEFAULT 'F'`;
   await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS invoice_start_number INTEGER DEFAULT 1`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS email_contact TEXT`;
+
+  await sql`
+    CREATE TABLE IF NOT EXISTS bank_accounts (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      bank_name TEXT NOT NULL,
+      iban TEXT NOT NULL,
+      swift TEXT,
+      currency TEXT DEFAULT 'EUR',
+      is_default BOOLEAN DEFAULT false,
+      created_at TIMESTAMPTZ DEFAULT NOW()
+    )
+  `;
 
   await sql`
     CREATE TABLE IF NOT EXISTS clients (
@@ -49,6 +60,7 @@ export async function initDB() {
       id SERIAL PRIMARY KEY,
       user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
       client_id INTEGER REFERENCES clients(id),
+      bank_account_id INTEGER REFERENCES bank_accounts(id),
       invoice_number TEXT NOT NULL,
       issue_date DATE NOT NULL,
       due_date DATE NOT NULL,
@@ -59,6 +71,8 @@ export async function initDB() {
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `;
+
+  await sql`ALTER TABLE invoices ADD COLUMN IF NOT EXISTS bank_account_id INTEGER REFERENCES bank_accounts(id)`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS invoice_items (
