@@ -45,8 +45,20 @@ export async function GET(
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #111; background: white; }
-    @page { margin: 1.5cm; size: A4; }
-    @media screen { body { padding: 40px; max-width: 800px; margin: 0 auto; } }
+
+    /* Suppress browser-generated date/URL/page number headers and footers */
+    @page {
+      size: A4;
+      margin: 1.5cm;
+    }
+    @media print {
+      html { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+      .print-bar { display: none !important; }
+    }
+    @media screen {
+      body { padding: 40px; max-width: 800px; margin: 0 auto; }
+    }
+
     .legal { font-size: 8px; color: #999; margin-bottom: 24px; line-height: 1.4; }
     .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; }
     .title { font-size: 32px; font-weight: bold; letter-spacing: -1px; }
@@ -77,15 +89,15 @@ export async function GET(
     .payment-title { font-size: 10px; font-weight: 700; text-decoration: underline; margin-bottom: 6px; }
     .payment-detail { font-size: 10px; color: #555; font-style: italic; line-height: 1.6; }
     .notes { font-size: 10px; color: #444; margin-top: 16px; font-style: italic; white-space: pre-line; }
-    .footer { margin-top: 48px; padding-top: 8px; border-top: 1px solid #f3f4f6; font-size: 9px; color: #9ca3af; }
+    .doc-footer { margin-top: 48px; padding-top: 8px; border-top: 1px solid #f3f4f6; font-size: 9px; color: #9ca3af; }
     .print-bar { text-align: center; margin-bottom: 24px; }
     .print-btn { background: #111; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; }
-    @media print { .print-bar { display: none; } }
   </style>
 </head>
 <body>
   <div class="print-bar">
     <button class="print-btn" onclick="window.print()">&#128438; Printeaza / Salveaza PDF</button>
+    <p style="margin-top:10px;font-size:11px;color:#888;">In dialogul de print: <strong>Mai multe setari &rarr; dezactiveaza &ldquo;Anteturi si subsoluri&rdquo;</strong></p>
   </div>
   <p class="legal">Factura circula fara semnatura si stampila cf. art.V, alin (2) din Ordonanta nr.17/2015 si art. 319 alin (29) din Legea nr. 227/2015 privind Codul fiscal.</p>
   <div class="header">
@@ -166,7 +178,7 @@ export async function GET(
     </div>
   ` : ""}
   ${inv.notes ? `<p class="notes">${inv.notes}</p>` : ""}
-  <div class="footer">${inv.invoice_number} ${fmt(total)} ${inv.currency} scadenta la ${format(new Date(inv.due_date), "dd.MM.yyyy")}</div>
+  <div class="doc-footer">${inv.invoice_number} ${fmt(total)} ${inv.currency} scadenta la ${format(new Date(inv.due_date), "dd.MM.yyyy")}</div>
 </body>
 </html>`;
 
