@@ -21,8 +21,8 @@ export async function GET(
            u.address as user_address,
            u.city as user_city,
            u.county as user_county,
-           COALESCE(ba.bank_name, default_ba.bank_name) as bank_name,
-           COALESCE(ba.iban, default_ba.iban) as iban,
+           COALESCE(ba.bank_name, default_ba.bank_name, u.bank_name) as bank_name,
+           COALESCE(ba.iban, default_ba.iban, u.iban) as iban,
            COALESCE(ba.swift, default_ba.swift) as swift
     FROM invoices i
     LEFT JOIN clients c ON c.id = i.client_id
@@ -36,11 +36,11 @@ export async function GET(
       LIMIT 1
     ) default_ba ON true
     WHERE i.id = ${id} AND i.user_id = ${session.user.id}
-  `;
+  ` as any[];
 
   if (!rows[0]) return new Response("Not found", { status: 404 });
 
-  const items = await sql`SELECT * FROM invoice_items WHERE invoice_id = ${id}`;
+  const items = await sql`SELECT * FROM invoice_items WHERE invoice_id = ${id}` as any[];
   const inv = { ...rows[0], items };
 
   const total = items.reduce((s: number, i: any) => s + Number(i.total), 0);
