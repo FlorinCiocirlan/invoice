@@ -22,9 +22,19 @@ export async function POST(req: Request) {
   const body = await req.json();
   const { client_id, invoice_number, issue_date, due_date, currency, exchange_rate, notes, items } = body;
 
+  // get default bank account
+  const ba = await sql`
+    SELECT id FROM bank_accounts
+    WHERE user_id = ${session.user.id}
+    ORDER BY is_default DESC, created_at ASC
+    LIMIT 1
+  `;
+
+  const bankAccountId = ba[0]?.id || null;
+
   const rows = await sql`
-    INSERT INTO invoices (user_id, client_id, invoice_number, issue_date, due_date, currency, exchange_rate, notes, status)
-    VALUES (${session.user.id}, ${client_id}, ${invoice_number}, ${issue_date}, ${due_date},
+    INSERT INTO invoices (user_id, client_id, bank_account_id, invoice_number, issue_date, due_date, currency, exchange_rate, notes, status)
+    VALUES (${session.user.id}, ${client_id}, ${bankAccountId}, ${invoice_number}, ${issue_date}, ${due_date},
             ${currency || "EUR"}, ${exchange_rate}, ${notes}, 'issued')
     RETURNING *
   `;
