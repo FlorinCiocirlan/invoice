@@ -65,7 +65,7 @@ export default async function PrintPage({ params }: { params: Promise<{ id: stri
           .payment { border-top: 1px solid #e5e7eb; padding-top: 12px; margin-top: 8px; }
           .payment-title { font-size: 10px; font-weight: 700; text-decoration: underline; margin-bottom: 6px; }
           .payment-detail { font-size: 10px; color: #555; font-style: italic; line-height: 1.6; }
-          .tax-note { font-size: 10px; color: #6b7280; margin-top: 16px; }
+          .notes { font-size: 10px; color: #444; margin-top: 16px; font-style: italic; white-space: pre-line; }
           .footer { margin-top: 48px; padding-top: 8px; border-top: 1px solid #f3f4f6; font-size: 9px; color: #9ca3af; }
           .print-bar { text-align: center; margin-bottom: 24px; }
           .print-btn { background: #111; color: white; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; cursor: pointer; }
@@ -156,8 +156,7 @@ export default async function PrintPage({ params }: { params: Promise<{ id: stri
             {inv.iban && <div className="payment-detail">Banca / IBAN: {inv.iban}</div>}
           </div>
         )}
-        {inv.notes && <p className="tax-note" style={{fontStyle:"italic"}}>{inv.notes}</p>}
-        <p className="tax-note">Total amount is tax included.</p>
+        {inv.notes && <p className="notes">{inv.notes}</p>}
         <div className="footer">{inv.invoice_number} {fmt(total)} {inv.currency} scadenta la {format(new Date(inv.due_date), "dd.MM.yyyy")}</div>
       </body>
     </html>

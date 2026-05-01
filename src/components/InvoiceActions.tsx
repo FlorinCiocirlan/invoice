@@ -12,12 +12,31 @@ export default function InvoiceActions({ id }: { id: number }) {
     const { number } = await nextRes.json();
     const today = new Date().toISOString().split("T")[0];
     const due = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
-    await fetch("/api/invoices", {
+    // Strip DB-specific fields from items before re-inserting
+    const cleanItems = (inv.items || []).map((item: any) => ({
+      description: item.description,
+      unit: item.unit,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      total: item.total,
+    }));
+    const newRes = await fetch("/api/invoices", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ client_id: inv.client_id, invoice_number: number, issue_date: today, due_date: due, currency: inv.currency, exchange_rate: inv.exchange_rate, notes: inv.notes, items: inv.items }),
+      body: JSON.stringify({
+        client_id: inv.client_id,
+        invoice_number: number,
+        issue_date: today,
+        due_date: due,
+        currency: inv.currency,
+        exchange_rate: inv.exchange_rate,
+        notes: inv.notes,
+        items: cleanItems,
+      }),
     });
-    router.refresh();
+    const data = await newRes.json();
+    if (newRes.ok) router.push(`/dashboard/invoices/${data.id}`);
+    else router.refresh();
   }
 
   async function handleDelete() {
@@ -28,9 +47,27 @@ export default function InvoiceActions({ id }: { id: number }) {
 
   return (
     <div className="flex items-center justify-end gap-1">
-      <a href={`/dashboard/invoices/${id}`} className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors" title="Vizualizează"><Eye size={15} /></a>
-      <button onClick={handleDuplicate} className="p-1.5 rounded hover:bg-blue-50 text-gray-500 hover:text-blue-700 transition-colors" title="Duplică"><Copy size={15} /></button>
-      <button onClick={handleDelete} className="p-1.5 rounded hover:bg-red-50 text-gray-500 hover:text-red-600 transition-colors" title="Șterge"><Trash2 size={15} /></button>
+      <a
+        href={`/dashboard/invoices/${id}`}
+        className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
+        title="Vizualizează"
+      >
+        <Eye size={15} />
+      </a>
+      <button
+        onClick={handleDuplicate}
+        className="p-1.5 rounded hover:bg-blue-50 text-gray-500 hover:text-blue-700 transition-colors"
+        title="Duplică"
+      >
+        <Copy size={15} />
+      </button>
+      <button
+        onClick={handleDelete}
+        className="p-1.5 rounded hover:bg-red-50 text-gray-500 hover:text-red-600 transition-colors"
+        title="Șterge"
+      >
+        <Trash2 size={15} />
+      </button>
     </div>
   );
 }

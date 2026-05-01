@@ -44,6 +44,13 @@ export default function InvoicePrintView({ invoice }: { invoice: Invoice }) {
     const { number } = await nextRes.json();
     const today = new Date().toISOString().split("T")[0];
     const due = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
+    const cleanItems = invoice.items.map((item) => ({
+      description: item.description,
+      unit: item.unit,
+      quantity: item.quantity,
+      unit_price: item.unit_price,
+      total: item.total,
+    }));
     const res = await fetch("/api/invoices", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -55,7 +62,7 @@ export default function InvoicePrintView({ invoice }: { invoice: Invoice }) {
         currency: invoice.currency,
         exchange_rate: invoice.exchange_rate,
         notes: invoice.notes,
-        items: invoice.items,
+        items: cleanItems,
       }),
     });
     const data = await res.json();
@@ -182,8 +189,9 @@ export default function InvoicePrintView({ invoice }: { invoice: Invoice }) {
             {invoice.iban && <p className="text-xs italic text-gray-700">Banca / IBAN: {invoice.iban}</p>}
           </div>
         )}
-        {invoice.notes && <p className="text-xs text-gray-600 mt-4 italic">{invoice.notes}</p>}
-        <p className="text-xs text-gray-500 mt-6">Total amount is tax included.</p>
+        {invoice.notes && (
+          <p className="text-xs text-gray-600 mt-4 italic">{invoice.notes}</p>
+        )}
         <div className="mt-12 pt-4 border-t border-gray-100 flex justify-between text-[10px] text-gray-400">
           <span>{invoice.invoice_number} {fmt(total)} {invoice.currency} scadenta la {format(new Date(invoice.due_date), "dd.MM.yyyy")}</span>
         </div>
