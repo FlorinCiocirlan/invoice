@@ -19,9 +19,15 @@ export async function initDB() {
       bank_name TEXT,
       iban TEXT,
       email_contact TEXT,
+      invoice_series TEXT DEFAULT 'F',
+      invoice_start_number INTEGER DEFAULT 1,
       created_at TIMESTAMPTZ DEFAULT NOW()
     )
   `;
+
+  // Add columns if they don't exist (for existing DBs)
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS invoice_series TEXT DEFAULT 'F'`;
+  await sql`ALTER TABLE users ADD COLUMN IF NOT EXISTS invoice_start_number INTEGER DEFAULT 1`;
 
   await sql`
     CREATE TABLE IF NOT EXISTS clients (
