@@ -116,8 +116,9 @@ td { border-bottom: 1px solid #f3f4f6; padding: 9px 8px 9px 0; vertical-align: t
 .grand { display: flex; justify-content: space-between; margin-top: 4px; padding: 9px 12px; background: #2563eb; color: white; font-weight: 700; }
 .ron, .notes { color: #6b7280; font-size: 12px; margin: 0 0 24px; }
 .footer { border-top: 1px solid #f3f4f6; color: #9ca3af; font-size: 10px; margin-top: 48px; padding-top: 16px; }
+@page { size: A4; margin: 0; }
 @media print {
-  body { padding: 0; }
+  body { padding: 40px; }
   .invoice { max-width: none; }
 }
 </style>
