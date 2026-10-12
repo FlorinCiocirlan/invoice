@@ -1,6 +1,6 @@
 "use client";
 import { useRouter } from "next/navigation";
-import { Eye, Copy, Trash2 } from "lucide-react";
+import { Eye, Pencil, Copy, Trash2 } from "lucide-react";
 
 export default function InvoiceActions({ id }: { id: number }) {
   const router = useRouter();
@@ -53,6 +53,13 @@ export default function InvoiceActions({ id }: { id: number }) {
         title="Vizualizează"
       >
         <Eye size={15} />
+      </a>
+      <a
+        href={`/dashboard/invoices/${id}/edit`}
+        className="p-1.5 rounded hover:bg-gray-100 text-gray-500 hover:text-gray-900 transition-colors"
+        title="Editează"
+      >
+        <Pencil size={15} />
       </a>
       <button
         onClick={handleDuplicate}

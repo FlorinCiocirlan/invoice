@@ -1,6 +1,6 @@
 "use client";
 import { format } from "date-fns";
-import { ArrowLeft, Printer } from "lucide-react";
+import { ArrowLeft, Pencil, Printer } from "lucide-react";
 import Link from "next/link";
 
 interface InvoiceItem { description: string; unit: string; quantity: number; unit_price: number; total: number }
@@ -41,7 +41,10 @@ export default function InvoicePrintView({ invoice }: { invoice: Invoice }) {
       <div className="flex items-center gap-4 mb-6 no-print">
         <Link href="/dashboard" className="text-gray-400 hover:text-gray-900"><ArrowLeft size={20} /></Link>
         <h1 className="text-xl font-bold">{invoice.invoice_number}</h1>
-        <button onClick={() => window.open(`/print/${invoice.id}`, "_blank")} className="ml-auto flex items-center gap-2 bg-gray-900 text-white rounded-lg px-4 py-2 text-sm hover:bg-gray-800 transition-colors">
+        <Link href={`/dashboard/invoices/${invoice.id}/edit`} className="ml-auto flex items-center gap-2 border border-gray-300 rounded-lg px-4 py-2 text-sm hover:bg-gray-50 transition-colors">
+          <Pencil size={15} /> Editează
+        </Link>
+        <button onClick={() => window.open(`/print/${invoice.id}`, "_blank")} className="flex items-center gap-2 bg-gray-900 text-white rounded-lg px-4 py-2 text-sm hover:bg-gray-800 transition-colors">
           <Printer size={15} /> Printează / PDF
         </button>
       </div>

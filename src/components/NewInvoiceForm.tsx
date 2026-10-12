@@ -8,20 +8,36 @@ import Link from "next/link";
 interface Client { id: number; name: string; cui?: string; reg_com?: string; address?: string; city?: string; country?: string; }
 interface User { name: string; cui?: string; reg_com?: string; address?: string; city?: string; county?: string; bank_name?: string; iban?: string; }
 interface Item { description: string; unit: string; quantity: string; unit_price: string; total: string }
+export interface EditableInvoice {
+  id: number;
+  client_id: number | null;
+  invoice_number: string;
+  issue_date: string;
+  due_date: string;
+  currency: string;
+  exchange_rate: string | number | null;
+  notes: string | null;
+  items: { description: string; unit: string | null; quantity: string | number; unit_price: string | number; total: string | number }[];
+}
 const emptyItem = (): Item => ({ description: "", unit: "BUC", quantity: "1", unit_price: "0", total: "0" });
 
-export default function NewInvoiceForm({ clients, user, nextNumber }: { clients: Client[]; user: User; nextNumber: string }) {
+export default function NewInvoiceForm({ clients, user, nextNumber, invoice }: { clients: Client[]; user: User; nextNumber?: string; invoice?: EditableInvoice }) {
   const router = useRouter();
+  const isEdit = !!invoice;
   const today = new Date().toISOString().split("T")[0];
   const due30 = new Date(Date.now() + 30 * 86400000).toISOString().split("T")[0];
-  const [invoiceNumber, setInvoiceNumber] = useState(nextNumber);
-  const [issueDate, setIssueDate] = useState(today);
-  const [dueDate, setDueDate] = useState(due30);
-  const [currency, setCurrency] = useState("EUR");
-  const [exchangeRate, setExchangeRate] = useState("5.0989");
-  const [clientId, setClientId] = useState(clients[0]?.id?.toString() || "");
-  const [notes, setNotes] = useState("");
-  const [items, setItems] = useState<Item[]>([emptyItem()]);
+  const [invoiceNumber, setInvoiceNumber] = useState(invoice?.invoice_number ?? nextNumber ?? "");
+  const [issueDate, setIssueDate] = useState(invoice?.issue_date ?? today);
+  const [dueDate, setDueDate] = useState(invoice?.due_date ?? due30);
+  const [currency, setCurrency] = useState(invoice?.currency ?? "EUR");
+  const [exchangeRate, setExchangeRate] = useState(invoice ? String(invoice.exchange_rate ?? "") : "5.0989");
+  const [clientId, setClientId] = useState(invoice ? String(invoice.client_id ?? "") : clients[0]?.id?.toString() || "");
+  const [notes, setNotes] = useState(invoice?.notes ?? "");
+  const [items, setItems] = useState<Item[]>(
+    invoice?.items.length
+      ? invoice.items.map(i => ({ description: i.description, unit: i.unit || "BUC", quantity: String(Number(i.quantity)), unit_price: String(Number(i.unit_price)), total: Number(i.total).toFixed(2) }))
+      : [emptyItem()]
+  );
   const [saving, setSaving] = useState(false);
 
   const selectedClient = clients.find(c => c.id.toString() === clientId);
@@ -42,22 +58,24 @@ export default function NewInvoiceForm({ clients, user, nextNumber }: { clients:
 
   async function handleSave() {
     if (!clientId) { alert("Selectează un client"); return; }
+    if (items.some(i => !i.description.trim())) { alert("Completează descrierea pentru fiecare linie"); return; }
     setSaving(true);
-    const res = await fetch("/api/invoices", {
-      method: "POST",
+    const res = await fetch(isEdit ? `/api/invoices/${invoice.id}` : "/api/invoices", {
+      method: isEdit ? "PUT" : "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ client_id: parseInt(clientId), invoice_number: invoiceNumber, issue_date: issueDate, due_date: dueDate, currency, exchange_rate: parseFloat(exchangeRate), notes, items: items.map(i => ({ description: i.description, unit: i.unit, quantity: parseFloat(i.quantity), unit_price: parseFloat(i.unit_price), total: parseFloat(i.total) })) }),
+      body: JSON.stringify({ client_id: parseInt(clientId), invoice_number: invoiceNumber, issue_date: issueDate, due_date: dueDate, currency, exchange_rate: exchangeRate ? parseFloat(exchangeRate) : null, notes, items: items.map(i => ({ description: i.description, unit: i.unit, quantity: parseFloat(i.quantity), unit_price: parseFloat(i.unit_price), total: parseFloat(i.total) })) }),
     });
     const data = await res.json();
     setSaving(false);
-    if (res.ok) router.push(`/dashboard/invoices/${data.id}`);
+    if (res.ok) { router.push(`/dashboard/invoices/${data.id}`); router.refresh(); }
+    else alert(data.error || "Eroare la salvare");
   }
 
   return (
     <div>
       <div className="flex items-center gap-4 mb-8 no-print">
-        <Link href="/dashboard" className="text-gray-400 hover:text-gray-900 transition-colors"><ArrowLeft size={20} /></Link>
-        <h1 className="text-2xl font-bold text-gray-900">Factură nouă</h1>
+        <Link href={isEdit ? `/dashboard/invoices/${invoice.id}` : "/dashboard"} className="text-gray-400 hover:text-gray-900 transition-colors"><ArrowLeft size={20} /></Link>
+        <h1 className="text-2xl font-bold text-gray-900">{isEdit ? `Editează factura ${invoice.invoice_number}` : "Factură nouă"}</h1>
       </div>
       <div className="grid grid-cols-2 gap-6 mb-6 no-print">
         <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4">
@@ -125,8 +143,8 @@ export default function NewInvoiceForm({ clients, user, nextNumber }: { clients:
         <Textarea value={notes} onChange={e => setNotes(e.target.value)} className="mt-2" rows={3} placeholder="Instrucțiuni de plată, mențiuni etc." />
       </div>
       <div className="flex justify-end gap-3 no-print">
-        <Link href="/dashboard"><Button variant="outline">Anulează</Button></Link>
-        <Button onClick={handleSave} disabled={saving}>{saving ? "Se salvează..." : "Salvează factura"}</Button>
+        <Link href={isEdit ? `/dashboard/invoices/${invoice.id}` : "/dashboard"}><Button variant="outline">Anulează</Button></Link>
+        <Button onClick={handleSave} disabled={saving}>{saving ? "Se salvează..." : isEdit ? "Salvează modificările" : "Salvează factura"}</Button>
       </div>
     </div>
   );
